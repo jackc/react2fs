@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 )
 
 var options struct {
@@ -17,7 +18,7 @@ func main() {
 		flag.PrintDefaults()
 	}
 
-	flag.StringVar(&options.dir, "dir", ".", "directory to watch")
+	flag.StringVar(&options.dir, "dir", ".", "directories to watch (separate multiple directories with commas)")
 	flag.Parse()
 
 	cmd := flag.Args()
@@ -32,9 +33,12 @@ func main() {
 	}
 	defer watcher.Close()
 
-	err = watcher.Add(options.dir)
-	if err != nil {
-		log.Fatal(err)
+	dirs := strings.Split(options.dir, ",")
+	for _, d := range dirs {
+		err = watcher.Add(d)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	var nowRunning *Process
