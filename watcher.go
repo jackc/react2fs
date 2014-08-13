@@ -2,7 +2,9 @@ package main
 
 import (
 	fsnotify "gopkg.in/fsnotify.v0"
+	"io/ioutil"
 	"os"
+	"path/filepath"
 )
 
 type Watcher struct {
@@ -31,7 +33,34 @@ func NewWatcher() (*Watcher, error) {
 }
 
 func (w *Watcher) Add(name string) error {
-	return w.watcher.Add(name)
+	err := w.watcher.Add(name)
+	if err != nil {
+		return err
+	}
+
+	stat, err := os.Stat(name)
+	if err != nil {
+		return err
+	}
+	if !stat.IsDir() {
+		return nil
+	}
+
+	fileInfos, err := ioutil.ReadDir(name)
+	if err != nil {
+		return err
+	}
+
+	for _, fi := range fileInfos {
+		if fi.IsDir() {
+			err = w.Add(filepath.Join(name, fi.Name()))
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func (w *Watcher) watch() {

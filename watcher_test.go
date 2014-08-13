@@ -176,6 +176,48 @@ func TestWatcherNoticesCreatedSubdirectoryAndChangesWithinIt(t *testing.T) {
 	case err := <-watcher.Errors:
 		t.Fatal(err)
 	case <-time.After(time.Second):
-		t.Fatal("Creating file in subdirectory did not trigger event")
+		t.Fatal("Creating file in subdirectory created while watching did not trigger event")
+	}
+}
+
+func TestWatcherNoticesCreatedFileInSubdirectory(t *testing.T) {
+	t.Parallel()
+
+	tmpdir, err := ioutil.TempDir("", "watcher_")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		os.RemoveAll(tmpdir)
+	}()
+
+	subdir, err := ioutil.TempDir(tmpdir, "watcher_")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	watcher, err := NewWatcher()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer watcher.Close()
+
+	err = watcher.Add(tmpdir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	f, err := ioutil.TempFile(subdir, "watcher_")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+
+	select {
+	case <-watcher.Events:
+	case err := <-watcher.Errors:
+		t.Fatal(err)
+	case <-time.After(time.Second):
+		t.Fatal("Creating file in existing subdirectory did not trigger event")
 	}
 }
