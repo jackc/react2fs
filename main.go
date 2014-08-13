@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 )
 
 var options struct {
-	dir string
+	dir     string
+	pattern string
 }
 
 func main() {
@@ -19,6 +21,7 @@ func main() {
 	}
 
 	flag.StringVar(&options.dir, "dir", ".", "directories to watch (separate multiple directories with commas)")
+	flag.StringVar(&options.pattern, "pattern", ".*", "only watch files matching this regexp")
 	flag.Parse()
 
 	cmd := flag.Args()
@@ -32,6 +35,14 @@ func main() {
 		log.Fatal(err)
 	}
 	defer watcher.Close()
+
+	for _, p := range strings.Split(options.pattern, ",") {
+		re, err := regexp.Compile(p)
+		if err != nil {
+			log.Fatal("Invalid pattern:", err)
+		}
+		watcher.Patterns = append(watcher.Patterns, re)
+	}
 
 	dirs := strings.Split(options.dir, ",")
 	for _, d := range dirs {

@@ -5,13 +5,15 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 )
 
 type Watcher struct {
-	watcher *fsnotify.Watcher
-	Events  chan fsnotify.Event
-	Errors  chan error
-	quit    chan bool
+	watcher  *fsnotify.Watcher
+	Events   chan fsnotify.Event
+	Errors   chan error
+	quit     chan bool
+	Patterns []*regexp.Regexp
 }
 
 func NewWatcher() (*Watcher, error) {
@@ -88,7 +90,7 @@ func (w *Watcher) watch() {
 		}
 
 		switch {
-		case event.Op != 0:
+		case event.Op != 0 && w.isMatchingFile(event.Name):
 			select {
 			case w.Events <- event:
 			case <-w.quit:
@@ -102,6 +104,20 @@ func (w *Watcher) watch() {
 			}
 		}
 	}
+}
+
+func (w *Watcher) isMatchingFile(name string) bool {
+	if len(w.Patterns) == 0 {
+		return true
+	}
+
+	for _, p := range w.Patterns {
+		if p.MatchString(name) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (w *Watcher) Close() error {

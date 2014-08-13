@@ -3,6 +3,8 @@ package main
 import (
 	"io/ioutil"
 	"os"
+	"path/filepath"
+	"regexp"
 	"testing"
 	"time"
 )
@@ -219,5 +221,58 @@ func TestWatcherNoticesCreatedFileInSubdirectory(t *testing.T) {
 		t.Fatal(err)
 	case <-time.After(time.Second):
 		t.Fatal("Creating file in existing subdirectory did not trigger event")
+	}
+}
+
+func TestWatcherIgnoresChangesThatDoNotMatchPattern(t *testing.T) {
+	t.Parallel()
+
+	tmpdir, err := ioutil.TempDir("", "watcher_")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		os.RemoveAll(tmpdir)
+	}()
+
+	watcher, err := NewWatcher()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer watcher.Close()
+
+	watcher.Patterns = []*regexp.Regexp{regexp.MustCompile(`.*\.go`)}
+
+	err = watcher.Add(tmpdir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	f, err := os.Create(filepath.Join(tmpdir, "main.rb"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+
+	select {
+	case <-watcher.Events:
+		t.Fatal("Pattern should have excluded event")
+	case err := <-watcher.Errors:
+		t.Fatal(err)
+	case <-time.After(time.Second):
+	}
+
+	f2, err := os.Create(filepath.Join(tmpdir, "main.go"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f2.Close()
+
+	select {
+	case <-watcher.Events:
+	case err := <-watcher.Errors:
+		t.Fatal(err)
+	case <-time.After(time.Second):
+		t.Fatal("Creating file did not generate event")
 	}
 }
