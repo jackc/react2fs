@@ -1,4 +1,4 @@
-// sleep is a test program for testing WatchedProcess
+// sleep is a test program for testing Process
 //
 // sleep doesn't exist on Windows this is a substitute
 package main

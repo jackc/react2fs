@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-
-	fsnotify "gopkg.in/fsnotify.v0"
 )
 
 var options struct {
@@ -28,7 +26,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	watcher, err := fsnotify.NewWatcher()
+	watcher, err := NewWatcher()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -39,8 +37,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	var nowRunning *WatchedProcess
-	nowRunning, err = StartWatchedProcess(cmd)
+	var nowRunning *Process
+	nowRunning, err = StartProcess(cmd)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -53,22 +51,8 @@ func main() {
 			if err != nil {
 				log.Println("error:", err)
 			}
-
-			if event.Op == fsnotify.Create {
-				stat, err := os.Stat(event.Name)
-				if err != nil {
-					log.Println("error:", err)
-				}
-				if stat.IsDir() {
-					err = watcher.Add(event.Name)
-					if err != nil {
-						log.Println("error:", err)
-					}
-				}
-			}
 		case err := <-watcher.Errors:
 			log.Println("error:", err)
 		}
 	}
-
 }

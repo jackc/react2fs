@@ -5,13 +5,14 @@ import (
 	"time"
 )
 
-func TestWatchedProcessRestartExitedProcess(t *testing.T) {
+func TestProcessRestartExitedProcess(t *testing.T) {
 	t.Parallel()
 
-	wp, err := StartWatchedProcess([]string{"sleep", "0"})
+	wp, err := StartProcess([]string{"sleep", "0"})
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer wp.Kill()
 
 	pid := wp.process.Pid
 
@@ -29,13 +30,14 @@ func TestWatchedProcessRestartExitedProcess(t *testing.T) {
 	}
 }
 
-func TestWatchedProcessRestartRunningProcess(t *testing.T) {
+func TestProcessRestartRunningProcess(t *testing.T) {
 	t.Parallel()
 
-	wp, err := StartWatchedProcess([]string{"sleep", "10"})
+	wp, err := StartProcess([]string{"sleep", "10"})
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer wp.Kill()
 
 	pid := wp.process.Pid
 
