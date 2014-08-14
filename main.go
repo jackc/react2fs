@@ -11,7 +11,8 @@ import (
 
 var options struct {
 	dir     string
-	pattern string
+	include string
+	exclude string
 }
 
 func main() {
@@ -21,7 +22,8 @@ func main() {
 	}
 
 	flag.StringVar(&options.dir, "dir", ".", "directories to watch (separate multiple directories with commas)")
-	flag.StringVar(&options.pattern, "pattern", ".*", "only watch files matching this regexp")
+	flag.StringVar(&options.include, "include", "", "only watch files matching this regexp")
+	flag.StringVar(&options.exclude, "exclude", "", "don't watch files matching this regexp")
 	flag.Parse()
 
 	cmd := flag.Args()
@@ -36,19 +38,26 @@ func main() {
 	}
 	defer watcher.Close()
 
-	for _, p := range strings.Split(options.pattern, ",") {
-		re, err := regexp.Compile(p)
+	if options.include != "" {
+		re, err := regexp.Compile(options.include)
 		if err != nil {
-			log.Fatal("Invalid pattern:", err)
+			log.Fatal("Invalid include regex:", err)
 		}
-		watcher.Patterns = append(watcher.Patterns, re)
+		watcher.Include = re
+	}
+	if options.exclude != "" {
+		re, err := regexp.Compile(options.exclude)
+		if err != nil {
+			log.Fatal("Invalid exclude regex:", err)
+		}
+		watcher.Exclude = re
 	}
 
 	dirs := strings.Split(options.dir, ",")
 	for _, d := range dirs {
 		err = watcher.Add(d)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("Unable to watch directory:", err)
 		}
 	}
 

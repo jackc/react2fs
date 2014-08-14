@@ -9,11 +9,12 @@ import (
 )
 
 type Watcher struct {
-	watcher  *fsnotify.Watcher
-	Events   chan fsnotify.Event
-	Errors   chan error
-	quit     chan bool
-	Patterns []*regexp.Regexp
+	watcher *fsnotify.Watcher
+	Events  chan fsnotify.Event
+	Errors  chan error
+	quit    chan bool
+	Include *regexp.Regexp
+	Exclude *regexp.Regexp
 }
 
 func NewWatcher() (*Watcher, error) {
@@ -107,17 +108,15 @@ func (w *Watcher) watch() {
 }
 
 func (w *Watcher) isMatchingFile(name string) bool {
-	if len(w.Patterns) == 0 {
-		return true
-	}
+	return w.isIncludedFile(name) && !w.isExcludedFile(name)
+}
 
-	for _, p := range w.Patterns {
-		if p.MatchString(name) {
-			return true
-		}
-	}
+func (w *Watcher) isIncludedFile(name string) bool {
+	return w.Include == nil || w.Include.MatchString(name)
+}
 
-	return false
+func (w *Watcher) isExcludedFile(name string) bool {
+	return w.Exclude != nil && w.Exclude.MatchString(name)
 }
 
 func (w *Watcher) Close() error {

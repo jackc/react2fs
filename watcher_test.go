@@ -224,7 +224,7 @@ func TestWatcherNoticesCreatedFileInSubdirectory(t *testing.T) {
 	}
 }
 
-func TestWatcherIgnoresChangesThatDoNotMatchPattern(t *testing.T) {
+func TestWatcherIgnoresChangesThatDoNotMatchInclude(t *testing.T) {
 	t.Parallel()
 
 	tmpdir, err := ioutil.TempDir("", "watcher_")
@@ -241,7 +241,7 @@ func TestWatcherIgnoresChangesThatDoNotMatchPattern(t *testing.T) {
 	}
 	defer watcher.Close()
 
-	watcher.Patterns = []*regexp.Regexp{regexp.MustCompile(`.*\.go`)}
+	watcher.Include = regexp.MustCompile(`\.go$`)
 
 	err = watcher.Add(tmpdir)
 	if err != nil {
@@ -257,6 +257,59 @@ func TestWatcherIgnoresChangesThatDoNotMatchPattern(t *testing.T) {
 	select {
 	case <-watcher.Events:
 		t.Fatal("Pattern should have excluded event")
+	case err := <-watcher.Errors:
+		t.Fatal(err)
+	case <-time.After(time.Second):
+	}
+
+	f2, err := os.Create(filepath.Join(tmpdir, "main.go"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f2.Close()
+
+	select {
+	case <-watcher.Events:
+	case err := <-watcher.Errors:
+		t.Fatal(err)
+	case <-time.After(time.Second):
+		t.Fatal("Creating file did not generate event")
+	}
+}
+
+func TestWatcherIgnoresChangesThatMatchExclude(t *testing.T) {
+	t.Parallel()
+
+	tmpdir, err := ioutil.TempDir("", "watcher_")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		os.RemoveAll(tmpdir)
+	}()
+
+	watcher, err := NewWatcher()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer watcher.Close()
+
+	watcher.Exclude = regexp.MustCompile(`\.js$`)
+
+	err = watcher.Add(tmpdir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	f, err := os.Create(filepath.Join(tmpdir, "main.js"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+
+	select {
+	case <-watcher.Events:
+		t.Fatal("Antipattern should have excluded event")
 	case err := <-watcher.Errors:
 		t.Fatal(err)
 	case <-time.After(time.Second):
