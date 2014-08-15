@@ -77,6 +77,7 @@ func (w *Watcher) watch() {
 				stat, err := os.Stat(event.Name)
 				if err != nil {
 					w.Errors <- err
+					continue
 				}
 				if stat.IsDir() {
 					err = w.Add(event.Name)
