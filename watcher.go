@@ -1,20 +1,20 @@
 package main
 
 import (
+	"fmt"
 	fsnotify "gopkg.in/fsnotify.v0"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"regexp"
 )
 
 type Watcher struct {
-	watcher *fsnotify.Watcher
-	Events  chan fsnotify.Event
-	Errors  chan error
-	quit    chan bool
-	Include *regexp.Regexp
-	Exclude *regexp.Regexp
+	watcher  *fsnotify.Watcher
+	Events   chan fsnotify.Event
+	Errors   chan error
+	quit     chan bool
+	Includes []string
+	Excludes []string
 }
 
 func NewWatcher() (*Watcher, error) {
@@ -112,11 +112,34 @@ func (w *Watcher) isMatchingFile(name string) bool {
 }
 
 func (w *Watcher) isIncludedFile(name string) bool {
-	return w.Include == nil || w.Include.MatchString(name)
+	if len(w.Includes) == 0 {
+		return true
+	}
+
+	for _, glob := range w.Includes {
+		match, _ := filepath.Match(glob, name)
+		if match {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (w *Watcher) isExcludedFile(name string) bool {
-	return w.Exclude != nil && w.Exclude.MatchString(name)
+	if len(w.Excludes) == 0 {
+		return false
+	}
+
+	for _, glob := range w.Excludes {
+		fmt.Println(glob, name)
+		match, _ := filepath.Match(glob, name)
+		if match {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (w *Watcher) Close() error {

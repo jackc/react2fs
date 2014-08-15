@@ -4,7 +4,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"regexp"
 	"testing"
 	"time"
 )
@@ -241,7 +240,7 @@ func TestWatcherIgnoresChangesThatDoNotMatchInclude(t *testing.T) {
 	}
 	defer watcher.Close()
 
-	watcher.Include = regexp.MustCompile(`\.go$`)
+	watcher.Includes = []string{"*.go"}
 
 	err = watcher.Add(tmpdir)
 	if err != nil {
@@ -294,7 +293,7 @@ func TestWatcherIgnoresChangesThatMatchExclude(t *testing.T) {
 	}
 	defer watcher.Close()
 
-	watcher.Exclude = regexp.MustCompile(`\.js$`)
+	watcher.Excludes = []string{"*.js"}
 
 	err = watcher.Add(tmpdir)
 	if err != nil {
@@ -309,7 +308,7 @@ func TestWatcherIgnoresChangesThatMatchExclude(t *testing.T) {
 
 	select {
 	case <-watcher.Events:
-		t.Fatal("Antipattern should have excluded event")
+		t.Fatal("Exclude should have excluded event")
 	case err := <-watcher.Errors:
 		t.Fatal(err)
 	case <-time.After(time.Second):

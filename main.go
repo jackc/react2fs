@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"regexp"
 	"strings"
 )
 
@@ -47,19 +46,16 @@ func main() {
 	}
 	defer watcher.Close()
 
-	if options.include != "" {
-		re, err := regexp.Compile(options.include)
-		if err != nil {
-			log.Fatal("Invalid include regex:", err)
-		}
-		watcher.Include = re
+	includes := strings.Split(options.include, ",")
+	for _, glob := range includes {
+		glob := strings.TrimSpace(glob)
+		watcher.Includes = append(watcher.Includes, glob)
 	}
-	if options.exclude != "" {
-		re, err := regexp.Compile(options.exclude)
-		if err != nil {
-			log.Fatal("Invalid exclude regex:", err)
-		}
-		watcher.Exclude = re
+
+	excludes := strings.Split(options.exclude, ",")
+	for _, glob := range excludes {
+		glob := strings.TrimSpace(glob)
+		watcher.Excludes = append(watcher.Excludes, glob)
 	}
 
 	dirs := strings.Split(options.dir, ",")
