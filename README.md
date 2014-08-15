@@ -1,12 +1,26 @@
 # react2fs
 
-react2fs is a simple utility to react to file system changes by running a command.
+react2fs is a simple utility to react to file system changes by running a
+command.
+
+## Usage
 
     usage:  react2fs [options] command
       -dir=".": directories to watch (separate multiple directories with commas)
       -exclude="": don't watch files matching this regexp
       -include="": only watch files matching this regexp
       -version=false: print version and exit
+
+## Development
+
+react2fs uses [godep](https://github.com/tools/godep) to manage its
+dependencies. If you don't already have it installed "go get" it.
+
+    go get github.com/tools/godep
+
+Then prefix go commands with godep:
+
+    godep go test
 
 ## Copyright
 
