@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-const Version = "0.1.1"
+const Version = "0.1.2"
 
 var options struct {
 	dir     string
