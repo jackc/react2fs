@@ -309,7 +309,7 @@ func TestWatcherIgnoresChangesThatMatchExclude(t *testing.T) {
 
 	select {
 	case <-watcher.Events:
-		t.Fatal("Antipattern should have excluded event")
+		t.Fatal("Exclude should have excluded event")
 	case err := <-watcher.Errors:
 		t.Fatal(err)
 	case <-time.After(time.Second):
