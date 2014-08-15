@@ -9,10 +9,13 @@ import (
 	"strings"
 )
 
+const Version = "0.1.0"
+
 var options struct {
 	dir     string
 	include string
 	exclude string
+	version bool
 }
 
 func main() {
@@ -24,7 +27,13 @@ func main() {
 	flag.StringVar(&options.dir, "dir", ".", "directories to watch (separate multiple directories with commas)")
 	flag.StringVar(&options.include, "include", "", "only watch files matching this regexp")
 	flag.StringVar(&options.exclude, "exclude", "", "don't watch files matching this regexp")
+	flag.BoolVar(&options.version, "version", false, "print version and exit")
 	flag.Parse()
+
+	if options.version {
+		fmt.Printf("react2fs v%v\n", Version)
+		os.Exit(0)
+	}
 
 	cmd := flag.Args()
 	if len(cmd) == 0 {
