@@ -105,7 +105,7 @@ func TestWatcherNoticesRemoveFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer f.Close()
+	f.Close()
 
 	watcher, err := NewWatcher()
 	if err != nil {
