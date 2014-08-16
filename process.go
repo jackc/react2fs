@@ -1,8 +1,10 @@
 package main
 
 import (
+	"errors"
 	"os"
 	"os/exec"
+	"time"
 )
 
 type Process struct {
@@ -51,19 +53,39 @@ func (wp *Process) Restart() (err error) {
 }
 
 // Kill stops the process without restarting it
-func (wp *Process) Kill() (err error) {
+func (wp *Process) Kill() error {
 	if wp.process != nil {
-		err = wp.process.Kill()
-		if err != nil {
-			return err
-		}
-
-		err = wp.process.Release()
-		if err != nil {
-			return err
-		}
-
+		process := wp.process
 		wp.process = nil
+
+		// Wait to check error of Kill because process may already be dead. We only
+		// care about the error if the process never finished and we were unable to
+		// kill it.
+		killErr := process.Kill()
+
+		waitDone := make(chan bool)
+		waitErr := make(chan error)
+
+		go func() {
+			_, err := process.Wait()
+			if err != nil {
+				waitErr <- err
+			} else {
+				waitDone <- true
+			}
+		}()
+
+		select {
+		case <-waitDone:
+			return nil
+		case err := <-waitErr:
+			return err
+		case <-time.After(10 * time.Second):
+			if killErr != nil {
+				return killErr
+			}
+			return errors.New("Timeout waiting for process to terminate")
+		}
 	}
 
 	return nil
