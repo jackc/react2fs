@@ -18,9 +18,14 @@ dependencies. If you don't already have it installed "go get" it.
 
     go get github.com/tools/godep
 
+Use go get to get react2fs, but don't automatically install.
+
+    go get -d github.com/jackc/react2fs
+
 Then prefix go commands with godep:
 
     godep go test
+    godep go install
 
 ## Copyright
 
