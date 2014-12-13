@@ -1,7 +1,7 @@
 package main
 
 import (
-	fsnotify "gopkg.in/fsnotify.v0"
+	fsnotify "gopkg.in/fsnotify.v1"
 	"io/ioutil"
 	"os"
 	"path/filepath"

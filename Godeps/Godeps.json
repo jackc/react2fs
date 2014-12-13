@@ -1,11 +1,11 @@
 {
 	"ImportPath": "github.com/jackc/react2fs",
-	"GoVersion": "go1.3",
+	"GoVersion": "go1.4",
 	"Deps": [
 		{
-			"ImportPath": "gopkg.in/fsnotify.v0",
-			"Comment": "v0.14.2",
-			"Rev": "f65830eaf06927b6eb3e8fb321185e6f8c9b3caf"
+			"ImportPath": "gopkg.in/fsnotify.v1",
+			"Comment": "v1.1.0",
+			"Rev": "f582d920d11386e8ae15227bb5933a8f9b4c3dec"
 		}
 	]
 }

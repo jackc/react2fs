@@ -9,7 +9,7 @@ package fsnotify_test
 import (
 	"log"
 
-	"github.com/go-fsnotify/fsnotify"
+	"gopkg.in/fsnotify.v1"
 )
 
 func ExampleNewWatcher() {
@@ -19,6 +19,7 @@ func ExampleNewWatcher() {
 	}
 	defer watcher.Close()
 
+	done := make(chan bool)
 	go func() {
 		for {
 			select {
@@ -37,4 +38,5 @@ func ExampleNewWatcher() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	<-done
 }
