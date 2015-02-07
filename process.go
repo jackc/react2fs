@@ -14,7 +14,7 @@ type Process struct {
 	process  *os.Process
 }
 
-// StartProcess starts a new process from from argv.
+// StartProcess starts a new process from argv.
 func StartProcess(argv []string) (*Process, error) {
 	var wp Process
 	var err error
