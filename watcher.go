@@ -1,11 +1,12 @@
 package main
 
 import (
-	fsnotify "gopkg.in/fsnotify.v1"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
+
+	"github.com/fsnotify/fsnotify"
 )
 
 type Watcher struct {
