@@ -5,31 +5,21 @@ command.
 
 ## Usage
 
-    usage:  react2fs [options] command
-      -dir=".": directories to watch (separate multiple directories with commas)
-      -exclude="": don't watch files matching this regexp
-      -include="": only watch files matching this regexp
-      -version=false: print version and exit
+```
+usage:  react2fs [options] command
+    -dir=".": directories to watch (separate multiple directories with commas)
+    -exclude="": don't watch files matching this regexp
+    -include="": only watch files matching this regexp
+    -version=false: print version and exit
+```
 
 ## Development
 
-react2fs uses [godep](https://github.com/tools/godep) to manage its
-dependencies. If you don't already have it installed "go get" it.
-
-    go get github.com/tools/godep
-
-Use go get to get react2fs, but don't automatically install.
-
-    go get -d github.com/jackc/react2fs
-
-Then prefix go commands with godep:
-
-    godep go test
-    godep go install
+react2fs uses Go modules for dependency management.
 
 ## Copyright
 
-Copyright 2014 Jack Christensen
+Copyright 2014-2019 Jack Christensen
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
