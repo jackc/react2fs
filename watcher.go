@@ -93,7 +93,7 @@ func (w *Watcher) watch() {
 		}
 
 		switch {
-		case event.Op != 0 && w.isMatchingFile(event.Name):
+		case event.Op != 0 && event.Op != fsnotify.Chmod && w.isMatchingFile(event.Name):
 			select {
 			case w.Events <- event:
 			case <-w.quit:
