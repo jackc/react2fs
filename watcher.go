@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/fsnotify/fsnotify"
 )
@@ -16,6 +17,7 @@ type Watcher struct {
 	quit    chan bool
 	Include *regexp.Regexp
 	Exclude *regexp.Regexp
+	paths   []string
 }
 
 func NewWatcher() (*Watcher, error) {
@@ -37,6 +39,11 @@ func NewWatcher() (*Watcher, error) {
 }
 
 func (w *Watcher) Add(name string) error {
+	w.paths = append(w.paths, name)
+	return w.add(name)
+}
+
+func (w *Watcher) add(name string) error {
 	err := w.watcher.Add(name)
 	if err != nil {
 		return err
@@ -69,48 +76,59 @@ func (w *Watcher) Add(name string) error {
 
 func (w *Watcher) watch() {
 	for {
-		var event fsnotify.Event
-		var err error
-
 		select {
-		case event = <-w.watcher.Events:
-			if event.Op == fsnotify.Create {
-				stat, err := os.Stat(event.Name)
-				if err != nil {
-					w.Errors <- err
-					continue
-				}
-				if stat.IsDir() {
-					err = w.Add(event.Name)
+		case event := <-w.watcher.Events:
+			if w.isMatchingFile(event.Name) {
+				if event.Op == fsnotify.Create {
+					stat, err := os.Stat(event.Name)
 					if err != nil {
 						w.Errors <- err
+						continue
+					}
+					if stat.IsDir() {
+						err = w.add(event.Name)
+						if err != nil {
+							w.Errors <- err
+						}
+					}
+				}
+
+				if event.Op != 0 && event.Op != fsnotify.Chmod {
+					select {
+					case w.Events <- event:
+					case <-w.quit:
+						return
 					}
 				}
 			}
-		case err = <-w.watcher.Errors:
-		case <-w.quit:
-			return
-		}
 
-		switch {
-		case event.Op != 0 && event.Op != fsnotify.Chmod && w.isMatchingFile(event.Name):
-			select {
-			case w.Events <- event:
-			case <-w.quit:
-				return
-			}
-		case err != nil:
+		case err := <-w.watcher.Errors:
 			select {
 			case w.Errors <- err:
 			case <-w.quit:
 				return
 			}
+		case <-w.quit:
+			return
 		}
 	}
 }
 
 func (w *Watcher) isMatchingFile(name string) bool {
-	return w.isIncludedFile(name) && !w.isExcludedFile(name)
+	return w.isWatchedPath(name) && w.isIncludedFile(name) && !w.isExcludedFile(name)
+}
+
+// isWatchedPath checks that the file event comes from a path that is being watched. In theory that shouldn't be
+// necessary as only events from watched paths should be received. But at least on MacOS that is not true when
+// switching branches in Git.
+func (w *Watcher) isWatchedPath(name string) bool {
+	for _, p := range w.paths {
+		if strings.HasPrefix(name, p) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (w *Watcher) isIncludedFile(name string) bool {
