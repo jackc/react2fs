@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-const Version = "0.2.2"
+const Version = "0.3.0"
 
 var options struct {
 	dir     string
