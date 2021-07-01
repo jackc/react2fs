@@ -4,9 +4,11 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"regexp"
 	"strings"
+	"time"
 )
 
 const Version = "0.2.2"
@@ -76,14 +78,19 @@ func main() {
 		log.Fatal(err)
 	}
 
+	restartTimer := time.NewTimer(math.MaxInt64)
+
 	for {
 		select {
 		case event := <-watcher.Events:
 			log.Println(event)
-			err = nowRunning.Restart()
+			restartTimer.Reset(100 * time.Millisecond)
+		case <-restartTimer.C:
+			err := nowRunning.Restart()
 			if err != nil {
 				log.Println("error:", err)
 			}
+			restartTimer = time.NewTimer(math.MaxInt64)
 		case err := <-watcher.Errors:
 			log.Println("error:", err)
 		}
