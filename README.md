@@ -3,6 +3,10 @@
 react2fs is a simple utility to react to file system changes by running a
 command.
 
+## Project Retired
+
+[watchexec](https://github.com/watchexec/watchexec) now does everything react2fs could and more.
+
 ## Usage
 
 ```
